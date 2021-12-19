@@ -1,4 +1,5 @@
 // require("js/commons.js")
+const Attendance = require('../models').attendances;
 const User = require('../models').users;
 const db = require('../models');
 const Trained = require('../models').trainings;
@@ -76,7 +77,6 @@ const coco = async (req, res) => {
   // console.log('loading model file...')
   // faceapi.env.monkeyPatch({ Canvas, Image })
   // const img = await Canvas.loadImage('trainings/1/amy5.png');
-  // console.log(img)
   // fetch('https://google.com')
   //   .then(res => res.text())
   //   .then(text => console.log(text));
@@ -94,6 +94,32 @@ const coco = async (req, res) => {
   });
 }
 
+const attendance = async (req, res) => {
+  try {
+    const {id_siswa} = req.params;
+    var date = new Date();
+    var dateStr =
+      ("00" + (date.getMonth() + 1)).slice(-2) + "-" +
+      ("00" + date.getDate()).slice(-2) + "-" +
+      date.getFullYear() + " " +
+      ("00" + date.getHours()).slice(-2) + ":" +
+      ("00" + date.getMinutes()).slice(-2) + ":" +
+      ("00" + date.getSeconds()).slice(-2);
+
+    const attendance = await Attendance.create({
+        id_siswa:id_siswa,created_at:dateStr
+    });
+    if (attendance) {
+        return res.status(200).send({
+          message: "Success absen ",
+        });
+    }
+  } catch (err) {
+      return res.status(500).send({
+        message: "Something when wrong",
+      });
+  }
+}    
 const user = async (req, res) => {
   // const users = await Sequelize.query("SELECT * FROM `tb_siswa`", { type: Sequelize.QueryTypes.SELECT });
   // const data = await Siswa.findAll()
@@ -187,5 +213,5 @@ const trained = async (req, res) => {
   }
 }
 
-module.exports = {retrieve, coco, user, trainClass, trained};
+module.exports = {retrieve, coco, user, attendance, trainClass, trained};
 // export default {retrieve, coco, user, trainClass, trained};

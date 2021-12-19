@@ -10,7 +10,8 @@ module.exports = (app) => {
 
   app.get('/user/:nis', frController.user);
   app.get('/users/:id', frController.retrieve);
-  app.get('/coco', frController.coco);
+  app.post('/coco', frController.coco);
+  app.post('/attendance/:id_siswa', frController.attendance);
   app.get('/train-class', frController.trainClass);
   app.post('/trained/:uuid/:level', frController.trained);
 };
