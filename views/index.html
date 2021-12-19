@@ -85,13 +85,16 @@
                 <label for="kelas_siswa">Kelas: <span id="kelas_siswa"></span></label>
               </div>
               <div class="row" style="margin-left: 16px;margin-right: 16px;padding-top: 8px;">
-                <label id="label_matkul_siswa" for="matkul_siswa">Mata Kuliah: <span id="matkul_siswa"></span></label>
+                <label id="label_matkul_siswa" for="matkul_siswa">Mata Kuliah:</label>
+              </div>
+              <div class="row" style="margin-left: 16px;margin-right: 16px;padding-top: 8px;">
+                <label id="label_attendance" style="display:none;"></label>
               </div>
             </div>
             <div id="btn-absen" style="display:none;" class="container-login100-form-btn m-t-16">
               <div class="wrap-login100-form-btn">
                 <div class="login100-form-bgbtn"></div>
-                <button onclick="capt()" value="capture" name="capture" type="submit" class="login100-form-btn">Absen</button>
+                <button onclick="attendance()" value="capture" name="capture" type="submit" class="login100-form-btn">Absen</button>
               </div>
             </div>
           </div>
@@ -105,6 +108,11 @@
     let faceMatcher = null
     let currImageIdx = 2, currClassIdx = 0
     let to = null
+
+    let forwardTimes = []
+    let id_siswa = null
+    let video = document.querySelector("#inputVideo");
+    let canvas = document.querySelector("#canvas");
 
     function setStatusText(text) {
       // $('#status').val(text)
@@ -122,36 +130,21 @@
       getImg().src = src
     }
 
-    async function runFaceRecognition() {
-      async function next() {
-        // const input = await faceapi.fetchImage("amy/amy5.png")
-        // // const input = await requestExternalImage("https://storage.googleapis.com/envisions_desk_dev/uploads/users/735/profile/2021-12/596a33eeb5b4ccb97ec7edf45233a661.png")
-        // const imgEl = $('#face').get(0)
-        // imgEl.src = input.src
+    function attendance() {
+      var requestOptions = {
+        method: 'POST',
+        redirect: 'follow'
+      };
+      var y = document.getElementById("btn-absen");
 
-        // const ts = Date.now()
-        // const descriptor = await faceapi.computeFaceDescriptor(input)
-        // displayTimeStats(Date.now() - ts)
-
-        // const bestMatch = faceMatcher.findBestMatch(descriptor)
-        // $('#prediction').val(bestMatch.toString())
-        // // console.log(descriptor,bestMatch)
-        // console.log(bestMatch.toString())
-
-        // currImageIdx = currClassIdx === (classes.length - 1)
-        //   ? currImageIdx + 1
-        //   : currImageIdx
-        // currClassIdx = (currClassIdx + 1) % classes.length
-
-        // currImageIdx = (currImageIdx % 6) || 2
-        // to = setTimeout(next, interval)
-      }
-      await next(0, 0)
+      fetch("/attendance/"+id_siswa, requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        y.style.display = "none";
+        document.getElementById("label_matkul_siswa").innerHTML = result.message
+      })
+      .catch(error => console.log('error', error));
     }
-
-    let forwardTimes = []
-    let video = document.querySelector("#inputVideo");
-    let canvas = document.querySelector("#canvas");
 
     async function capt() {
       canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -172,16 +165,33 @@
           method: 'GET',
           redirect: 'follow'
         };
+        var y = document.getElementById("btn-absen"),
+            z = document.getElementById("label_attendance");
 
         fetch("/user/"+result[0], requestOptions)
         .then(response => response.json())
         .then(result => {
+          if (result.data.length > 0) {
+            id_siswa = result.data[0].id_siswa
+          }
           document.getElementById("name_siswa").innerHTML = result.data.length > 0 ? result.data[0].nama_siswa : "Unknow"
           document.getElementById("kelas_siswa").innerHTML = result.data.length > 0 ? result.kelas[0].kelas : "Unknow"
-          if (result.data.length > 0 && result.mapel.length > 0) {
-            document.getElementById("matkul_siswa").innerHTML = result.mapel[0].mapel + " " + result.mapel[0].start_time + "-" + result.mapel[0].end_time
+          if (result.data.length > 0 && result.attendance.length > 0 && result.mapel.length > 0) {
+            document.getElementById("label_matkul_siswa").innerHTML = "Mata Kuliah: " + result.mapel[0].mapel + " " + result.mapel[0].start_time + "-" + result.mapel[0].end_time
+            y.style.display = "block";
           }else{
             document.getElementById("label_matkul_siswa").innerHTML = "Hari ini tidak ada jadwal kuliah"
+            y.style.display = "none";
+          }
+          if (result.data.length > 0 && result.attendance.length == 0 && result.mapel.length > 0) {
+            y.style.display = "block";
+            z.style.display = "none";
+          }else{
+            let attendance = new Date(result.attendance[0].created_at);
+            let time_attendance = attendance.getDate()+"-"+attendance.getMonth()+"-"+attendance.getYear()+" "+attendance.getHours()+":"+attendance.getMinutes()
+            document.getElementById("label_attendance").innerHTML = "Waktu absen: "+time_attendance
+            z.style.display = "block";
+            y.style.display = "none";
           }
         })
         .catch(error => console.log('error', error));
@@ -214,8 +224,6 @@
 
         faceMatcher = await createBbtFaceMatcher(1)
         $('#loader').hide()
-
-        runFaceRecognition()
 
         // load face detection model
         // await changeFaceDetector(TINY_FACE_DETECTOR)
