@@ -1,8 +1,5 @@
-const auth = require('./auth'),
-      roles = require('./roles'),
-      mounts = require('./mounts'),
-      users = require('./users');
+const fr = require('./fr');
 
 module.exports = {
-  auth, roles, mounts, users
+  fr
 };
