@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>E-Learning</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+  <!--===============================================================================================-->	
+	<link rel="shortcut icon" type="image/png" href="../vendor/images/favicon.png"/>
+  <!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="/login/vendor/bootstrap/css/bootstrap.min.css">
+  <!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="/login/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+  <!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="/login/fonts/iconic/css/material-design-iconic-font.min.css">
+  <!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="/login/vendor/animate/animate.css">
+  <!--===============================================================================================-->	
+	<link rel="stylesheet" type="text/css" href="/login/vendor/animsition/css/animsition.min.css">
+  <!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="/login/css/util.css">
+	<link rel="stylesheet" type="text/css" href="/login/css/main.css">
+  <!--===============================================================================================-->
+  <link rel="stylesheet" href="/node_modules/mdi/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="/node_modules/simple-line-icons/css/simple-line-icons.css">
+  <script src="js/face-api.js"></script>
+  <script src="js/commons.js"></script>
+  <script src="js/bbt.js"></script>
+  <!-- <script src="js/faceDetectionControls.js"></script> -->
+  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.css"> -->
+  <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+  <!-- endinject -->
+  <!-- plugin css for this page -->
+  <!-- End plugin css for this page -->
+  <!-- inject:css -->
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- endinject -->
+   <link href="/sweetalert/sweetalert.css" rel="stylesheet" />
+</head>
+<body style="background-image:url(/images/bhg.jpg);jpg);background-size:cover;">
+	
+	<div class="limiter">
+		<div class="container-login100" style="background-image: url('/login/images/bg.jpg');">
+			<div class="wrap-login100 p-l-55 p-r-55 p-t-65 p-b-54">
+					<span class="login100-form-title">Absensi</span>
+
+					<div class="wrap-input100 validate-input" data-validate="Password is required">
+						<!-- <span class="label-input100">User</span> -->
+						<video onloadedmetadata="onPlay(this)" id="inputVideo" autoplay muted playsinline style="height: 18rem;border-radius: 16px;"></video>
+            <!-- <canvas id="overlay" /> -->
+
+            <p id="status"></p>
+
+            <div class="container-login100-form-btn m-b-23">
+              <div class="wrap-login100-form-btn">
+                <div class="login100-form-bgbtn"></div>
+                <button onclick="capt()" value="capture" name="capture" type="submit" class="login100-form-btn">Capture</button>
+              </div>
+            </div>
+            <!-- <div class="container-login100-form-btn">
+              <div class="wrap-login100-form-btn">
+                <div class="login100-form-bgbtn"></div>
+                <a href="../index.php" class="login100-form-btn" style="text-decoration:none;">Back to login</a>
+              </div>
+            </div> -->
+					</div>
+
+          <div id="result-capture" class="m-t-24" style="display:none;">
+            <span class="login100-form-title">Result</span>
+            <canvas id="canvas" width="320" height="240"></canvas>
+            <div class="m-t-16" style="background-color: #F1F1F1;border-radius: 8px;">
+              <div class="row" style="margin-left: 16px;margin-right: 16px;padding-top: 8px;">
+                <label for="prediction">Prediction: <span id="prediction"></span></label>
+              </div>
+              <div class="row" style="margin-left: 16px;margin-right: 16px;padding-top: 8px;">
+                <label for="time">Time: <span id="time"></span></label>
+              </div>
+              <div class="row" style="margin-left: 16px;margin-right: 16px;padding-top: 8px;">
+                <label for="fps">Estimated Fps: <span id="fps"></span></label>
+              </div>
+              <div class="row" style="margin-left: 16px;margin-right: 16px;padding-top: 8px;">
+                <label for="name_siswa">Name: <span id="name_siswa"></span></label>
+              </div>
+              <div class="row" style="margin-left: 16px;margin-right: 16px;padding-top: 8px;">
+                <label for="kelas_siswa">Kelas: <span id="kelas_siswa"></span></label>
+              </div>
+              <div class="row" style="margin-left: 16px;margin-right: 16px;padding-top: 8px;">
+                <label id="label_matkul_siswa" for="matkul_siswa">Mata Kuliah: <span id="matkul_siswa"></span></label>
+              </div>
+            </div>
+            <div id="btn-absen" style="display:none;" class="container-login100-form-btn m-t-16">
+              <div class="wrap-login100-form-btn">
+                <div class="login100-form-bgbtn"></div>
+                <button onclick="capt()" value="capture" name="capture" type="submit" class="login100-form-btn">Absen</button>
+              </div>
+            </div>
+          </div>
+			</div>
+		</div>
+	</div>
+  <script>
+    let interval = 2000
+
+    let isStop = false
+    let faceMatcher = null
+    let currImageIdx = 2, currClassIdx = 0
+    let to = null
+
+    function setStatusText(text) {
+      // $('#status').val(text)
+      document.getElementById("status").innerHTML = text
+    }
+
+    function displayTimeStats(timeInMs) {
+      // $('#time').val(`${timeInMs} ms`)
+      // $('#fps').val(`${faceapi.utils.round(1000 / timeInMs)}`)
+      document.getElementById("time").innerHTML = `${timeInMs} ms`
+      document.getElementById("fps").innerHTML = `${faceapi.utils.round(1000 / timeInMs)}`
+    }
+
+    function displayImage(src) {
+      getImg().src = src
+    }
+
+    async function runFaceRecognition() {
+      async function next() {
+        // const input = await faceapi.fetchImage("amy/amy5.png")
+        // // const input = await requestExternalImage("https://storage.googleapis.com/envisions_desk_dev/uploads/users/735/profile/2021-12/596a33eeb5b4ccb97ec7edf45233a661.png")
+        // const imgEl = $('#face').get(0)
+        // imgEl.src = input.src
+
+        // const ts = Date.now()
+        // const descriptor = await faceapi.computeFaceDescriptor(input)
+        // displayTimeStats(Date.now() - ts)
+
+        // const bestMatch = faceMatcher.findBestMatch(descriptor)
+        // $('#prediction').val(bestMatch.toString())
+        // // console.log(descriptor,bestMatch)
+        // console.log(bestMatch.toString())
+
+        // currImageIdx = currClassIdx === (classes.length - 1)
+        //   ? currImageIdx + 1
+        //   : currImageIdx
+        // currClassIdx = (currClassIdx + 1) % classes.length
+
+        // currImageIdx = (currImageIdx % 6) || 2
+        // to = setTimeout(next, interval)
+      }
+      await next(0, 0)
+    }
+
+    let forwardTimes = []
+    let video = document.querySelector("#inputVideo");
+    let canvas = document.querySelector("#canvas");
+
+    async function capt() {
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+      let image_data_url = canvas.toDataURL('image/png');
+      urltoFile(image_data_url, 'capture.png','image/png')
+      .then(async function(file){
+        // const imgFile = file.get(0).files[0]
+        const input = await faceapi.bufferToImage(file)
+        const ts = Date.now()
+        const descriptor = await faceapi.computeFaceDescriptor(input)
+        displayTimeStats(Date.now() - ts)
+
+        const bestMatch = faceMatcher.findBestMatch(descriptor)
+        // $('#prediction').val(bestMatch.toString())
+        var result = bestMatch.toString().split(" ")
+        document.getElementById("prediction").innerHTML = bestMatch.toString()
+        var requestOptions = {
+          method: 'GET',
+          redirect: 'follow'
+        };
+
+        fetch("/user/"+result[0], requestOptions)
+        .then(response => response.json())
+        .then(result => {
+          document.getElementById("name_siswa").innerHTML = result.data.length > 0 ? result.data[0].nama_siswa : "Unknow"
+          document.getElementById("kelas_siswa").innerHTML = result.data.length > 0 ? result.kelas[0].kelas : "Unknow"
+          if (result.data.length > 0 && result.mapel.length > 0) {
+            document.getElementById("matkul_siswa").innerHTML = result.mapel[0].mapel + " " + result.mapel[0].start_time + "-" + result.mapel[0].end_time
+          }else{
+            document.getElementById("label_matkul_siswa").innerHTML = "Hari ini tidak ada jadwal kuliah"
+          }
+        })
+        .catch(error => console.log('error', error));
+
+        currImageIdx = currClassIdx === (classes.length - 1)
+          ? currImageIdx + 1
+          : currImageIdx
+        currClassIdx = (currClassIdx + 1) % classes.length
+
+        currImageIdx = (currImageIdx % 6) || 2
+      });
+      var x = document.getElementById("result-capture");
+      x.style.display = "block";
+    }
+
+    function urltoFile(url, filename, mimeType){
+        return (fetch(url)
+            .then(function(res){return res.arrayBuffer();})
+            .then(function(buf){return new File([buf], filename,{type:mimeType});})
+        );
+    }
+
+    async function run() {
+      try {
+        setStatusText('loading model file...')
+
+        await faceapi.loadFaceRecognitionModel('/')
+
+        setStatusText('computing initial descriptors...')
+
+        faceMatcher = await createBbtFaceMatcher(1)
+        $('#loader').hide()
+
+        runFaceRecognition()
+
+        // load face detection model
+        // await changeFaceDetector(TINY_FACE_DETECTOR)
+        // changeInputSize(128)
+
+        // try to access users webcam and stream the images
+        // to the video element
+        const stream = await navigator.mediaDevices.getUserMedia({ video: {} })
+        const videoEl = $('#inputVideo').get(0)
+        videoEl.srcObject = stream
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    async function onPlay() {
+      const videoEl = $('#inputVideo').get(0)
+
+      if(videoEl.paused || videoEl.ended || !isFaceDetectionModelLoaded())
+        return setTimeout(() => onPlay())
+
+      const options = getFaceDetectorOptions()
+      const ts = Date.now()
+      const result = await faceapi.detectSingleFace(videoEl, options)
+
+      updateTimeStats(Date.now() - ts)
+
+      if (result) {
+        const canvas = $('#overlay').get(0)
+        const dims = faceapi.matchDimensions(canvas, videoEl, true)
+        faceapi.draw.drawDetections(canvas, faceapi.resizeResults(result, dims))
+      }
+      setTimeout(() => onPlay())
+    }
+    $(document).ready(function() {
+      run()
+    })
+  </script>
+</body>
+</html>
