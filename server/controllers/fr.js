@@ -128,7 +128,9 @@ const user = async (req, res) => {
     replacements: {id: req.params.nis},
     type: db.sequelize.QueryTypes.SELECT
   });
-  let mapel, kelas;
+  
+  let mapel, kelas, attendance;
+  
   if (users.length>0) {
     const d = new Date();
     mapel = await db.sequelize.query('SELECT schedules.*, tb_master_mapel.* FROM tb_roleguru JOIN schedules ON tb_roleguru.id_jadwal = schedules.id JOIN tb_master_mapel ON tb_roleguru.id_mapel = tb_master_mapel.id_mapel WHERE tb_roleguru.id_kelas=(:id) AND schedules.day=(:date)', {
@@ -141,6 +143,11 @@ const user = async (req, res) => {
       replacements: {id: users[0].id_kelas},
       type: db.sequelize.QueryTypes.SELECT
     });
+
+    attendance = await db.sequelize.query('SELECT * FROM attendances WHERE id_siswa=(:id)', {
+      replacements: {id: users[0].id_siswa},
+      type: db.sequelize.QueryTypes.SELECT
+    });
   }
   // console.log(users[0])
   return res.status(200)
@@ -148,6 +155,7 @@ const user = async (req, res) => {
      'status': 'ok',
      'data': users,
      'kelas': kelas,
+     'attendance': attendance,
      'mapel': mapel
   })
 }
