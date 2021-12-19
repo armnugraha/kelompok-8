@@ -1,6 +1,8 @@
 // require("js/commons.js")
 const User = require('../models').users;
+const db = require('../models');
 const Trained = require('../models').trainings;
+const Siswa = require('../models').siswa;
 const uploadFile = require("../../public/js/uploads");
 const mkdirp = require('mkdirp')
 var fs = require('fs');
@@ -10,7 +12,7 @@ const { Canvas, Image, ImageData } = require('canvas');
 const commons = require('../../public/js/commons.js')
 const bbt = require('../../public/js/bbt.js')
 const fetch = require('node-fetch');
-const Sequelize = require('sequelize');
+const {Sequelize,QueryTypes} = require('sequelize');
 var _ = require('lodash');
 // import '@tensorflow/tfjs-node';
 // // implements nodejs wrappers for HTMLCanvasElement, HTMLImageElement, ImageData
@@ -92,6 +94,38 @@ const coco = async (req, res) => {
   });
 }
 
+const user = async (req, res) => {
+  // const users = await Sequelize.query("SELECT * FROM `tb_siswa`", { type: Sequelize.QueryTypes.SELECT });
+  // const data = await Siswa.findAll()
+  const users = await db.sequelize.query('SELECT * FROM tb_siswa WHERE nis=(:id)', {
+    // replacements: {id: req.user.id},
+    replacements: {id: req.params.nis},
+    type: db.sequelize.QueryTypes.SELECT
+  });
+  let mapel, kelas;
+  if (users.length>0) {
+    const d = new Date();
+    mapel = await db.sequelize.query('SELECT schedules.*, tb_master_mapel.* FROM tb_roleguru JOIN schedules ON tb_roleguru.id_jadwal = schedules.id JOIN tb_master_mapel ON tb_roleguru.id_mapel = tb_master_mapel.id_mapel WHERE tb_roleguru.id_kelas=(:id) AND schedules.day=(:date)', {
+      replacements: {id: users[0].id_kelas, date: d.getDay()},
+      // replacements: {id: users[0].id_kelas, date: 3},
+      type: db.sequelize.QueryTypes.SELECT
+    });
+
+    kelas = await db.sequelize.query('SELECT tb_master_kelas.* FROM tb_roleguru JOIN tb_master_kelas ON tb_roleguru.id_kelas = tb_master_kelas.id_kelas WHERE tb_roleguru.id_kelas=(:id)', {
+      replacements: {id: users[0].id_kelas},
+      type: db.sequelize.QueryTypes.SELECT
+    });
+  }
+  // console.log(users[0])
+  return res.status(200)
+  .json({
+     'status': 'ok',
+     'data': users,
+     'kelas': kelas,
+     'mapel': mapel
+  })
+}
+
 const trainClass = async (req, res) => {
   const uuid = await Trained.findAll({
     // attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('uuid'))]],
@@ -153,4 +187,5 @@ const trained = async (req, res) => {
   }
 }
 
-module.exports = {retrieve, coco, trainClass, trained};
+module.exports = {retrieve, coco, user, trainClass, trained};
+// export default {retrieve, coco, user, trainClass, trained};
