@@ -24,11 +24,13 @@ global.__basedir = __dirname;
 
 const viewsDir = path.join(__dirname, 'views')
 app.use(express.static(viewsDir))
+app.use(express.static(path.join(__dirname, './vendor')))
 app.use(express.static(path.join(__dirname, './public')))
 app.use(express.static(path.join(__dirname, './public/weights')))
 app.use(express.static(path.join(__dirname, './public/images')))
 
 app.get('/', (req, res) => res.redirect('/face_detection'))
+app.get('/face_matching', (req, res) => res.sendFile(path.join(viewsDir, 'index.html')))
 app.get('/bbt_face_matching', (req, res) => res.sendFile(path.join(viewsDir, 'bbtFaceMatching.html')))
 
 app.post('/fetch_external_image', async (req, res) => {
