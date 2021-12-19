@@ -51,7 +51,7 @@ async function createBbtFaceMatcher(numImagesForTraining = 1) {
   })
   .catch(error => console.log('error', error));
 
-  console.log(classes, file)
+  // console.log(classes, file)
 
   var dump = null
   var j = -1;
@@ -74,7 +74,7 @@ async function createBbtFaceMatcher(numImagesForTraining = 1) {
         const img = await faceapi.fetchImage(`${file[j]}`)
         descriptors.push(await faceapi.computeFaceDescriptor(img))
       }
-      console.log(descriptors)
+      // console.log(descriptors)
       return new faceapi.LabeledFaceDescriptors(
         className, descriptors
       )
