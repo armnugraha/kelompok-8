@@ -8,6 +8,7 @@ module.exports = (app) => {
     message: 'Welcome to the Todos API!',
   }));
 
+  app.get('/user/:nis', frController.user);
   app.get('/users/:id', frController.retrieve);
   app.get('/coco', frController.coco);
   app.get('/train-class', frController.trainClass);
